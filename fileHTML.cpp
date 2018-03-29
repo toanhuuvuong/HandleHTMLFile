@@ -1,4 +1,4 @@
-#include"fileHTML.h"
+﻿#include"fileHTML.h"
 
 void readFileStudent(FILE *fileIn, STUDENT &student)
 {
@@ -53,15 +53,20 @@ void readFileStudent(FILE *fileIn, STUDENT &student)
 			break;
 		}
 	}
+	// read yearSchool
+	fscanf(fileIn, "%d", &student.yearSchool);
+
+	// read birthDay
 }
 
 void writeFileStudent(FILE *fileIn, FILE *fileOut, STUDENT student)
 {
-	wchar_t *stringClassFullName = classFullName;
 	wchar_t *stringTitle = title;
+	wchar_t *stringClassFullName = classFullName;
 	wchar_t *stringClassFaculty = classFaculty;
+	wchar_t *stringClassInfo = classInfo;
 
-	int isMatchClassFullName = 0, isMatchTitle = 0, isMatchClassFaculty = 0;
+	int isMatchClassFullName = 0, isMatchTitle = 0, isMatchClassFaculty = 0, isMatchInfo = 0;
 	wchar_t wc;
 
 	while (!feof(fileIn))
@@ -69,6 +74,7 @@ void writeFileStudent(FILE *fileIn, FILE *fileOut, STUDENT student)
 		wc = fgetwc(fileIn);
 		fputwc(wc, fileOut);
 		// tim <title>
+		//================================================================================================================
 		if (wc == '<' && isMatchTitle == 0) // tim 1 lan duy nhat
 		{
 			isMatchTitle = 1;
@@ -91,10 +97,10 @@ void writeFileStudent(FILE *fileIn, FILE *fileOut, STUDENT student)
 				continue;
 			}
 		}
-		// tim cac class bat dau bang ki tu 'P'
-		if (wc == 'P' && isMatchClassFullName == 0)
+		// tim cac class bat dau bang ki tu 'c'
+		//=============================================================================================================
+		if (wc == 'c' && isMatchClassFullName == 0)
 		{
-			// kiem tra chuoi dang xet tiep theo co = stringClassFullName
 			isMatchClassFullName = 1;
 			for (int i = 1; i < wcslen(stringClassFullName); i++)
 			{
@@ -108,9 +114,8 @@ void writeFileStudent(FILE *fileIn, FILE *fileOut, STUDENT student)
 			}
 			if (isMatchClassFullName)
 			{
-				// Viet hoa tat ca cac ki tu trong fullName
 				for (int i = 0; i < wcslen(student.fullName); i++)
-					*(student.fullName + i) = towupper(*(student.fullName + i));
+					*(student.fullName + i) = towupper(*(student.fullName + i)); // viet hoa
 
 				fputws(student.fullName, fileOut);
 				fputwc('-', fileOut);
@@ -121,7 +126,8 @@ void writeFileStudent(FILE *fileIn, FILE *fileOut, STUDENT student)
 				continue;
 			}
 		}
-		if (wc == 'P' && isMatchClassFaculty == 0)
+		// =========================================================================================================
+		if (wc == 'c' && isMatchClassFaculty == 0)
 		{	// 
 			isMatchClassFaculty = 1;
 			for (int i = 1; i < wcslen(stringClassFaculty); i++)
@@ -147,5 +153,27 @@ void writeFileStudent(FILE *fileIn, FILE *fileOut, STUDENT student)
 				continue;
 			}
 		}
+		//=======================================================================================================
+	///*	if (wc == 'c' && isMatchInfo == 0)
+	//	{
+	//		isMatchInfo = 1;
+	//		for (int i = 1; i < wcslen(stringClassInfo); i++)
+	//		{
+	//			wc = fgetwc(fileIn);
+	//			fputwc(wc, fileOut);
+	//			if (wc != *(stringClassInfo + i))
+	//			{
+	//				isMatchInfo = 0;
+	//				break;
+	//			}
+	//		}
+	//		if (isMatchInfo)
+	//		{
+	//			while (wc != '>')
+	//				wc = fgetwc(fileIn);
+
+	//			fputws(L"<li>Họ và tên: ", fileOut)
+	//		}*/
+	//	}
 	}
 }

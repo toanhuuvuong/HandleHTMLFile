@@ -3,13 +3,14 @@
 #include<string>
 
 #define title L"<title>HCMUS - "
-#define classFullName L"Personal_FullName\">"
-#define classFaculty L"Personal_Department\">"
-#define classEmail L"Personal_Phone\">"
-#define classLinkImage L"Personal_HinhcanhanKhung\">\n<img src = \""
-#define classTextInList L"TextInList\">"
-#define classHobby L"InfoGroup\">Sở thích</div>\n<div>\n<ul class = \"TextInList\">"
-#define classDescription L"Description\">"
+#define classFullName L"class=\"Personal_FullName\">"
+#define classFaculty L"class=\"Personal_Department\">"
+#define classEmail L"class=\"Personal_Phone\">"
+#define classLinkImage L"class=\"Personal_HinhcanhanKhung\">\n<img src = \""
+#define classTextInList L"class=\"TextInList\">"
+#define classInfo L"class=\"InfoGroup\">Thông tin cá nhân</div>\n<div>\n<ul class = \"TextInList\">"
+#define classHobby L"class=\"InfoGroup\">Sở thích</div>\n<div>\n<ul class = \"TextInList\">"
+#define classDescription L"class=\"InfoGroup\">Mô tả</div>\n<div class = \"Description\">"
 
 struct student
 {
