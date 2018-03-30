@@ -6,12 +6,11 @@
 #define classFullName L"class=\"Personal_FullName\">"
 #define classFaculty L"class=\"Personal_Department\">"
 #define classEmail L"class=\"Personal_Phone\">"
-#define classLinkImage L"class=\"Personal_HinhcanhanKhung\">"
+#define classLinkImage L"class=\"Personal_HinhcanhanKhung\">\n\t\t\t\t\t\t<img src=\""
 #define classTextInList L"class=\"TextInList\">"
-#define classInfo L"class=\"InfoGroup\">Thông tin cá nhân</div>\n<div>\n<ul class = \"TextInList\">"
-#define classHobby L"class=\"InfoGroup\">Sở thích</div>\n<div>\n<ul class = \"TextInList\">"
-#define classDescription L"class=\"InfoGroup\">Mô tả</div>\n<div class = \"Description\">"
-
+#define classInfo L"<div class=\"InfoGroup\">ThÃ´ng tin cÃ¡ nhÃ¢n</div>\n                        <div>\n                            <ul class=\"TextInList\">\n                                "
+#define classHobby L"class=\"InfoGroup\">Sá»Ÿ thÃ­ch</div>\n                        <div>\n                            <ul class=\"TextInList\">\n                                "
+#define classDescription L"class=\"InfoGroup\">MÃ´ táº£</div>\n\t\t\t\t\t\t<div class=\"Description\">"
 struct student
 {
 	char ID[11];
