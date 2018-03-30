@@ -6,9 +6,10 @@ int main()
 	FILE *fileIn_CSV = _wfopen(L"TableInfo.csv", L"r");
 	if (!fileIn_CSV)
 		printf("Error\n");
-	readFileStudent(fileIn_CSV, student);
-	fclose(fileIn_CSV);
 
+	readFileStudent(fileIn_CSV, student);
+
+	fclose(fileIn_CSV);
 
 	FILE *fileIn = _wfopen(L"example.htm", L"r");
 	if (!fileIn)
