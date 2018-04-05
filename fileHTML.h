@@ -13,6 +13,7 @@
 #define classDescription L"class=\"InfoGroup\">MÃ´ táº£</div>\n\t\t\t\t\t\t<div class=\"Description\">"
 #define classFooter L"class=\"Layout_Footer\">\n\t\t\t\t<div class=\"divCopyright\">\n\t\t\t\t\t<br />\n\t\t\t\t\t<img src=\"Images/LogoFooter_gray.jpg\" width=\"34\" height=\"41\" /><br />\n\t\t\t\t\t<br />\n\t\t\t\t\t@"
 #define KTLT L"Ká»¹ thuáº­t láº­p trÃ¬nh</br>\n\t\t\t\t"
+
 struct student
 {
 	char ID[11];
@@ -42,6 +43,7 @@ void FGETWS(wchar_t *ws, int maxSizeWS, FILE *fileIn, wchar_t *mark);
 void FGETS(char *s, int maxSizeS, FILE *fileIn, char *mark);
 bool readFileIn_WriteFileOut_ToWS(FILE *fileOut, FILE *fileIn, wchar_t* ws);
 bool readFileIn_ToWS(FILE *fileIn, wchar_t *ws);
+bool isInMenu(int *Menu, int nMenu, int choose);
 
-void readFileStudent(FILE *fileIn, LIST &list);
-void writeFileStudent(FILE *fileIn, FILE *fileOut, STUDENT student);
+void readFileCSV(FILE *fileIn, LIST &list);
+void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int *Menu, int nMenu);
