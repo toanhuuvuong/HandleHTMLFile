@@ -26,7 +26,7 @@ int main()
 		*(Menu + nMenu) = choose;
 		nMenu++;
 	}
-
+	//===================================================================================================
 	LIST list;
 	list.nStudent = 10;
 	list.student = new STUDENT[list.nStudent];
@@ -56,8 +56,7 @@ int main()
 	}
 	fclose(fileIn);
 	//==================================================================================================
-	if (list.student)
-		delete[] list.student;
+	destroyList(list);
 	free(Menu);
 
 	_getch();
