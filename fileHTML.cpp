@@ -1,7 +1,6 @@
 ﻿#include"fileHTML.h"
 
-// MY FUNCTION
-//=============================================================================================================================================
+// HÀM PHỤ
 // hàm construtor
 STUDENT::student()
 {
@@ -13,9 +12,10 @@ STUDENT::student()
 	Email = NULL;
 	linkImage = NULL;
 	description = NULL;
-	hobby = NULL;
+	hobby[0] = NULL;
+	hobby[1] = NULL;
 }
-// hàm đọc fileIn đến các dấu ngắt câu của chuỗi mark (đọc luôn dấu ngắt câu đó) và dừng=====> sau đó lưu chuỗi vừa đọc vào chuỗi ws (không tính dấu ngắt câu)
+// hàm đọc fileIn đến các dấu ngắt câu của chuỗi mark (đọc luôn dấu ngắt câu đó) và dừng ==> sau đó lưu chuỗi vừa đọc vào chuỗi ws (không tính dấu ngắt câu)
 void FGETWS(wchar_t *&ws, int maxSizeWS, FILE *fileIn, wchar_t *mark) 
 {
 	int lengthMark = wcslen(mark); // độ dài chuỗi chứa các dấu ngắt câu
@@ -184,22 +184,20 @@ void destroyList(LIST &list)
 		free(list[i].Email);
 		free(list[i].linkImage);
 		free(list[i].description);
-		free(list[i].hobby);
+		free(list[i].hobby[0]);
+		free(list[i].hobby[1]);
 	}
 	delete[] list.student;
 }
 //==============================================================================================================================================
+// HÀM CHÍNH
 // hàm đọc danh sách sinh viên trong fileIn(CSV)
 void readFileCSV(FILE *fileIn, LIST &list)
 {
+	while (fgetwc(fileIn) != '\n'); // đọc bỏ hàng đầu của file CSV
+
 	for (int i = 0; i < list.nStudent; i++)
 	{
-		if (i == 0)
-		{
-			// đọc bỏ 3 kí tự rác đầu file CSV
-			for (int i = 1; i <= 3; i++)
-				fgetc(fileIn);
-		}
 		// đọc ID sinh viên 
 		FGETS(list[i].ID, 11, fileIn, ",");
 		// đọc Họ và Tên sinh viên
@@ -214,44 +212,85 @@ void readFileCSV(FILE *fileIn, LIST &list)
 		FGETS(list[i].Email, 31, fileIn, ",");
 		// đọc Link hình ảnh cá nhân của sinh viên
 		FGETS(list[i].linkImage, 31, fileIn, ",");
-		//==============================HAI TRƯỜNG HỢP ĐẶC BIỆT CÓ THỂ NGĂN CÁCH NHAU BẰNG DẤU , HOẶC DẤU " ================================
+		//==============================BA TRƯỜNG HỢP ĐẶC BIỆT CÓ THỂ NGĂN CÁCH NHAU BẰNG DẤU , HOẶC DẤU " ================================
+		/*    1.	" " "
+			  2.	" " ,
+			  3.	" , "
+			  4.	" , ,
+			  5.	, " "
+			  6.	, " ,
+			  7.	, , "
+			  8.	, , ,
+			  */
 		if (fgetwc(fileIn) == '\"') // sau khi đọc xong linkImage đọc thử 1 kí tự tiếp theo của fileIn và kiểm tra 
 		{
-			// đọc Mô Tả bản thân của sinh viên
-			FGETWS(list[i].description, 1000, fileIn, L"\"");
-
+			FGETWS(list[i].description, 1000, fileIn, L"\""); // đọc Mô Tả bản thân của sinh viên
 			fgetwc(fileIn); // đọc bỏ dấu ,
-
-			if (fgetwc(fileIn) == '\"') // sau khi đọc xong Mô Tả đọc thử 1 kí tự tiếp theo của fileIn và kiểm tra 
+			if (fgetwc(fileIn) == '\"')
 			{
-				// đọc Sở Thích cá nhân của sinh viên
-				FGETWS(list[i].hobby, 1000, fileIn, L"\"");
-				fgetc(fileIn); // đọc bỏ kí tự \n (là kí tự ngăn cách 2 sinh viên trên 2 dòng) ===> theo định dạng của file CSV
+				FGETWS(list[i].hobby[0], 1000, fileIn, L"\""); // đọc Sở Thích 1 cá nhân của sinh viên
+				fgetwc(fileIn); // đọc bỏ dấu ,
+				if (fgetwc(fileIn) == '\"')
+				{
+					FGETWS(list[i].hobby[1], 1000, fileIn, L"\""); // đọc Sở Thích 2 cá nhân của sinh viên
+					fgetc(fileIn); // đọc bỏ kí tự \n (là kí tự ngăn cách 2 sinh viên trên 2 dòng) ===> theo định dạng của file CSV
+				}// TH1------------------------------------------------------------------------------------------------------------------------
+				else
+				{
+					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET); // lui con trỏ chỉ vị xuống 1 đơn vị (vì đã đọc lố 1 kí tự đầu của nội dung Sở Thích 2)
+					FGETWS(list[i].hobby[1], 1000, fileIn, L"\n");
+				}// TH2------------------------------------------------------------------------------------------------------------------------
 			}
-			else 
+			else
 			{
-				fseek(fileIn, ftell(fileIn) - 1, SEEK_SET); // lui con trỏ chỉ vị xuống 1 đơn vị (vì đã đọc lố 1 kí tự đầu của nội dung Sở Thích)
-				// đọc Sở Thích cá nhân của sinh viên
-				FGETWS(list[i].hobby, 1000, fileIn, L"\n");
+				fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+				FGETWS(list[i].hobby[0], 1000, fileIn, L",");
+				if (fgetwc(fileIn) == '\"')
+				{
+					FGETWS(list[i].hobby[1], 1000, fileIn, L"\"");
+					fgetc(fileIn);
+				}// TH3------------------------------------------------------------------------------------------------------------------------
+				else
+				{
+					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+					FGETWS(list[i].hobby[1], 1000, fileIn, L"\n");
+				}// TH4------------------------------------------------------------------------------------------------------------------------
 			}
 		}
 		else
 		{
-			fseek(fileIn, ftell(fileIn) - 1, SEEK_SET); // lui con trỏ chỉ vị xuống 1 đơn vị (vì đã đọc lố 1 kí tự đầu của nội dung Mô Tả)
-			// đọc Mô Tả bản thân của sinh viên
+			fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
 			FGETWS(list[i].description, 1000, fileIn, L",");
 
-			if (fgetwc(fileIn) == '\"') // sau khi đọc xong Mô Tả đọc thử 1 kí tự tiếp theo của fileIn và kiểm tra 
+			if (fgetwc(fileIn) == '\"')
 			{
-				// đọc Sở Thích cá nhân của sinh viên
-				FGETWS(list[i].hobby, 1000, fileIn, L"\"");
-				fgetc(fileIn); // đọc bỏ kí tự \n (là kí tự ngăn cách 2 sinh viên trên 2 dòng) ===> theo định dạng của file CSV
+				FGETWS(list[i].hobby[0], 1000, fileIn, L"\"");
+				fgetwc(fileIn);
+				if (fgetwc(fileIn) == '\"')
+				{
+					FGETWS(list[i].hobby[1], 1000, fileIn, L"\"");
+					fgetc(fileIn);
+				}// TH5------------------------------------------------------------------------------------------------------------------------
+				else
+				{
+					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+					FGETWS(list[i].hobby[1], 1000, fileIn, L"\n");
+				}// TH6------------------------------------------------------------------------------------------------------------------------
 			}
 			else
 			{
-				fseek(fileIn, ftell(fileIn) - 1, SEEK_SET); // lui con trỏ chỉ vị xuống 1 đơn vị (vì đã đọc lố 1 kí tự đầu của nội dung Sở Thích)
-				// đọc Sở Thích cá nhân của sinh viên
-				FGETWS(list[i].hobby, 1000, fileIn, L"\n");
+				fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+				FGETWS(list[i].hobby[0], 1000, fileIn, L",");
+				if (fgetwc(fileIn) == '\"')
+				{
+					FGETWS(list[i].hobby[1], 1000, fileIn, L"\"");
+					fgetc(fileIn);
+				}// TH7------------------------------------------------------------------------------------------------------------------------
+				else
+				{
+					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+					FGETWS(list[i].hobby[1], 1000, fileIn, L"\n");
+				}// TH8------------------------------------------------------------------------------------------------------------------------
 			}
 		}
 	}
@@ -259,23 +298,10 @@ void readFileCSV(FILE *fileIn, LIST &list)
 // hàm vừa đọc fileIn(HTML) vừa ghi fileOut
 void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int *Menu, int nMenu)
 {
-	// Danh sách chuỗi cần tìm trong file HTML
-	wchar_t *stringTitle = title;
-	wchar_t *stringClassFullName = classFullName;
-	wchar_t *stringClassFaculty = classFaculty;
-	wchar_t *stringClassEmail = classEmail;
-	wchar_t *stringClassLinkImage = classLinkImage;
-	wchar_t *stringClassInfo = classInfo;
-	wchar_t *stringClassHobby = classHobby;
-	wchar_t *stringClassDescription = classDescription;
-	wchar_t *stringFooter = classFooter;
-	wchar_t *stringKTLT = KTLT;
-
 	wchar_t wc; // biến tạm để lữu từng kí tự đọc ra từ fileIn
 
-	// tìm chuỗi <title>
-	//================================================================================================================
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringTitle); // đọc fileIn-ghi fileOut đến chuỗi stringTitle
+	// tìm chuỗi <title> ---------------------------------------------------------------------------------------------------------------------
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, title); // đọc fileIn-ghi fileOut đến chuỗi title
 
 	if (isInMenu(Menu, nMenu, 2))
 		fputws(student.fullName, fileOut); // ghi Họ&Tên sinh viên mới vào fileOut 
@@ -283,9 +309,8 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int 
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	readFileIn_ToWS(fileIn, L"</title>"); // đọc bỏ Họ&Tên mẫu trong fileIn
-	// tìm chuỗi stringClassFullName
-	//================================================================================================================
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringClassFullName); // đọc fileIn-ghi fileOut đến chuỗi stringClassFullName
+	// tìm chuỗi classFullName ---------------------------------------------------------------------------------------------------------------
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, classFullName); // đọc fileIn-ghi fileOut đến chuỗi classFullName
 
 	if (isInMenu(Menu, nMenu, 2))
 		fputws(student.fullName, fileOut); // ghi Họ&Tên sinh viên mới vào fileOut 
@@ -298,9 +323,8 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int 
 		fputs("", fileOut); // ghi trống vào fileOut
 
 	readFileIn_ToWS(fileIn, L"</span>");// đọc bỏ Họ&Tên-ID mẫu trong fileIn
-	// tìm chuỗi stringClassFaculty
-	//================================================================================================================
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringClassFaculty); // đọc fileIn-ghi fileOut đến chuỗi stringClassFaculty
+	// tìm chuỗi classFaculty ---------------------------------------------------------------------------------------------------------------------
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, classFaculty); // đọc fileIn-ghi fileOut đến chuỗi classFaculty
 
 	if (isInMenu(Menu, nMenu, 3))
 		fputws(student.faculty, fileOut); // ghi Khoa sinh viên mới vào fileOut 
@@ -308,9 +332,8 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int 
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	readFileIn_ToWS(fileIn, L"</div>"); // đọc bỏ Khoa mẫu trong fileIn
-	// tìm chuỗi stringClassEmail
-	//================================================================================================================
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringClassEmail); // đọc fileIn-ghi fileOut đến chuỗi stringClassEmail
+	// tìm chuỗi classEmail ---------------------------------------------------------------------------------------------------------------------
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, classEmail); // đọc fileIn-ghi fileOut đến chuỗi classEmail
 
 	if (isInMenu(Menu, nMenu, 7))
 		fputs(student.Email, fileOut); // ghi Email sinh viên mới vào fileOut 
@@ -318,9 +341,8 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int 
 		fputs("", fileOut); // ghi trống vào fileOut
 
 	readFileIn_ToWS(fileIn, L"</div>"); // đọc bỏ Khoa mẫu trong fileIn
-	// tìm chuỗi stringClassLinkImage
-	//================================================================================================================
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringClassLinkImage); // đọc fileIn-ghi fileOut đến chuỗi stringClassLinkImage
+	// tìm chuỗi classLinkImage ---------------------------------------------------------------------------------------------------------------------
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, classLinkImage); // đọc fileIn-ghi fileOut đến chuỗi classLinkImage
 
 	if (isInMenu(Menu, nMenu, 6))
 		fputs(student.linkImage, fileOut); // ghi Link Ảnh Cá Nhân sinh viên mới vào fileOut 
@@ -328,70 +350,49 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int 
 		fputs("", fileOut); // ghi trống vào fileOut
 
 	readFileIn_ToWS(fileIn, L"\""); // đọc bỏ Link Ảnh Cá Nhân mẫu trong fileIn
-
-	// tìm chuỗi stringClassInfo <thông tin sinh viên>
-	//================================================================================================================
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringClassInfo); // đọc fileIn-ghi fileOut đến chuỗi stringClassInfo
+	// tìm chuỗi classInfo <thông tin sinh viên> -----------------------------------------------------------------------------------------------------
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, classInfo); // đọc fileIn-ghi fileOut đến chuỗi classInfo
 
 	if (isInMenu(Menu, nMenu, 2))
-	{
-		fputws(L"<li>Há» vÃ  tÃªn: ", fileOut);
-		fputws(student.fullName, fileOut);                 // thông tin Họ&Tên
-		fputws(L"</li>\n\t\t\t\t\t\t\t\t", fileOut);
-	}
+		addLine(topicFullName, student.fullName, fileOut);               // thông tin Họ&Tên
 	else
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	if (isInMenu(Menu, nMenu, 1))
-	{
-		fputws(L"<li>MSSV: ", fileOut);
-		fputs(student.ID, fileOut);                       // thông tin ID
-		fputws(L"</li>\n\t\t\t\t\t\t\t\t", fileOut);
-	}
+		addLine(topicID, student.ID, fileOut);							// thông tin ID
 	else
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	if (isInMenu(Menu, nMenu, 3))
-	{
-		fputws(L"<li>Sinh viÃªn khoa: ", fileOut);
-		fputws(student.faculty, fileOut);                 // thông tin Khoa
-		fputws(L"</li>\n\t\t\t\t\t\t\t\t", fileOut);
-	}
+		addLine(topicFaculty, student.faculty, fileOut);                // thông tin Khoa
 	else
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	if (isInMenu(Menu, nMenu, 5))
-	{
-		fputws(L"<li>NgÃ y sinh: ", fileOut);
-		fputs(student.birthDay, fileOut);                 // thông tin Ngày Sinh
-		fputws(L"</li>\n\t\t\t\t\t\t\t\t", fileOut);
-	}
+		addLine(topicBirthDay, student.birthDay, fileOut);              // thông tin Ngày Sinh
 	else
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	if (isInMenu(Menu, nMenu, 7))
-	{
-		fputws(L"<li>Email: ", fileOut);
-		fputs(student.Email, fileOut);                 // thông tin Ngày Sinh
-		fputws(L"</li>\n\t\t\t\t\t\t\t\t", fileOut);
-	}
+		addLine(topicEmail, student.Email, fileOut);                     // thông tin Ngày Sinh
 	else
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	readFileIn_ToWS(fileIn, L"</ul>"); // đọc bỏ Thông Tin mẫu trong fileIn
-	// tìm chuỗi stringClassHobby <sở thích cá nhân>
-	//================================================================================================================
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringClassHobby); // đọc fileIn-ghi fileOut đến chuỗi stringClassHobby
+	// tìm chuỗi classHobby <sở thích cá nhân> --------------------------------------------------------------------------------------------------------
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, classHobby); // đọc fileIn-ghi fileOut đến chuỗi classHobby
 
 	if (isInMenu(Menu, nMenu, 9))
-		fputws(student.hobby, fileOut);                 // ghi Sở Thích Cá Nhân của sinh viên mới vào fileOut
+	{
+		addLine(topicHobby1, student.hobby[0], fileOut);                 // ghi Sở Thích 1 của sinh viên mới vào fileOut
+		addLine(topicHobby2, student.hobby[1], fileOut);                 // ghi Sở Thích 2 của sinh viên mới vào fileOut
+	}
 	else
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	readFileIn_ToWS(fileIn, L"</ul>"); // đọc bỏ Sở Thích mẫu trong fileIn
-	// tìm chuỗi stringClassDescription <mô tả bản thân>
-	//================================================================================================================
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringClassDescription); // đọc fileIn-ghi fileOut đến chuỗi stringClassDescription
+	// tìm chuỗi classDescription <mô tả bản thân> -----------------------------------------------------------------------------------------------------
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, classDescription); // đọc fileIn-ghi fileOut đến chuỗi classDescription
 
 	if (isInMenu(Menu, nMenu, 8))
 		fputws(student.description, fileOut);                 // ghi Mô Tả Bản Thân của sinh viên mới vào fileOut
@@ -399,9 +400,8 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int 
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	readFileIn_ToWS(fileIn, L"</div>"); // đọc bỏ Mô Tả Bản Thân mẫu trong fileIn
-	// tìm chuỗi stringFooter <cuối trang>
-	//================================================================================================================
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringFooter); // đọc fileIn-ghi fileOut đến chuỗi stringFooter
+	// tìm chuỗi classFooter <cuối trang> --------------------------------------------------------------------------------------------------------------
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, classFooter); // đọc fileIn-ghi fileOut đến chuỗi classFooter
 
 	if (isInMenu(Menu, nMenu, 4))
 	{
@@ -409,21 +409,21 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int 
 		fputs("</br>\n\t\t\t\t\t", fileOut);
 	}
 	else
-		fputws(L"", fileOut); // ghi trống vào fileOut
+		fputws(L"", fileOut); // ghi trống vào fileOut 
 
-	readFileIn_ToWS(fileIn, L"<");
+	readFileIn_ToWS(fileIn, L"</br>");
 
-	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, stringKTLT);
+	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, KTLT);
 	fputs("TH2018/03", fileOut);
 	fputs("</br>\n\t\t\t\t\t", fileOut);
 
-	fputs(student.ID, fileOut);
+	fputs("1712825", fileOut);
 	fputs(" - ", fileOut);
-	fputws(student.fullName, fileOut);
+	fputws(L"VÆ°Æ¡ng Há»¯u ToÃ n", fileOut);
 	fputs("</br>\n\t\t\t\t\t", fileOut);
 
 	readFileIn_ToWS(fileIn, L"</div>"); // đọc bỏ Thông Tin Cuối Trang mẫu của fileIn
-	//=================================================================================================================
+	// -----------------------------------------------------------------------------------------------------------------------------------------------
 	// đã thay thế hết tất cả các vị trí yêu cầu
 	readFileIn_WriteFileOut_ToWS(fileOut, fileIn, L"</html>"); //====> đọc và ghi fileOut đến cuối fileIn
 }
