@@ -14,34 +14,46 @@ STUDENT::student()
 	description = NULL;
 	hobby[0] = NULL;
 	hobby[1] = NULL;
+	hobby[2] = NULL;
 }
-// hàm đọc fileIn đến các dấu ngắt câu của chuỗi mark (đọc luôn dấu ngắt câu đó) và dừng ==> sau đó lưu chuỗi vừa đọc vào chuỗi ws (không tính dấu ngắt câu)
-void FGETWS(wchar_t *&ws, int maxSizeWS, FILE *fileIn, wchar_t *mark) 
+// hàm đọc fileIn(CSV) và lưu vào chuỗi ws đến dấu ngắt câu mark (cụ thể là dấu phẩy, dấu ngoặc kép và dấu \n) và cập nhật dấu ngắt câu mới
+void FGETWS(wchar_t *&ws, const int &maxSizeWS, FILE *fileIn, char &mark)
 {
-	int lengthMark = wcslen(mark); // độ dài chuỗi chứa các dấu ngắt câu
 	wchar_t wc; // biến tạm để lữu từng kí tự đọc ra từ fileIn
-	int isMatchMark; // cờ kiểm tra kí tự wc có trùng với mark[i] hay không 
 	int indexWS = 0; // chỉ số của chuỗi ws
-
 
 	while (true)
 	{
 		wc = fgetwc(fileIn);
-		for (int i = 0; i < lengthMark; i++)
-		{
-			isMatchMark = 0; // giả sử chưa đến dấu ngắt câu
-			if (wc == *(mark + i))
-			{
-				isMatchMark = 1; // đã tìm được dấu ngắt câu
-				break;
-			}
-		}
-		if (indexWS == 0 && isMatchMark == 1) // kí tự đầu là dấu ngắt câu thì đọc bỏ
-			continue;
-		if (isMatchMark || indexWS == maxSizeWS - 1) // tìm được dấu ngắt câu hoặc chỉ số indexWS vượt quá maxSizeWS
+		if (wc == (wchar_t)mark) // tìm được mark
 		{
 			ws = (wchar_t*)realloc(ws, (indexWS + 1)*sizeof(wchar_t));
 			*(ws + indexWS) = 0; // kết thúc chuỗi ws
+			/* Cập nhật lại mark
+			Có 4 trường hợp:
+			TH1:   "nội dung 1","nội dung 2"
+			TH2:   "nội dung 1",nội dung 2
+			TH3:    nội dung 1,"nội dung 2"
+			TH4:    nội dung 1,nội dung 2	*/
+			wc = fgetwc(fileIn);
+			if (wc == ',') 
+			{
+				wc = fgetwc(fileIn);
+				if (wc == '\"') 
+					mark = '\"';	// --> TH1
+				else
+				{
+					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+					mark = ',';		// -->TH2
+				}
+			}
+			else if (wc == '\"')
+				mark = '\"';	// --> TH3
+			else
+			{
+				fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+				mark = ',';		// --> TH4
+			}
 			break;
 		}
 		else
@@ -50,43 +62,78 @@ void FGETWS(wchar_t *&ws, int maxSizeWS, FILE *fileIn, wchar_t *mark)
 			*(ws + indexWS) = wc; // thêm kí tự wc vào cuối chuỗi ws
 			indexWS++;
 		}
+
+		if (indexWS > maxSizeWS) // chỉ số indexWS vượt quá maxSizeWS mà vẫn chưa tìm thấy mark
+		{
+			ws = (wchar_t*)realloc(ws, (indexWS + 1)*sizeof(wchar_t));
+			*(ws + indexWS) = 0; // kết thúc chuỗi ws
+			printf("Error larger than max size\n");
+			break;
+		}
 	}
 }
-// tương tự hàm FGETWS nhưng với kiểu dữ liệu là char
-void FGETS(char *&s, int maxSizeS, FILE *fileIn, char *mark)
+// hàm tương tự FGETWS nhưng kiểu dữ liệu là char
+void FGETS(char *&s, const int &maxSizeS, FILE *fileIn, char &mark)
 {
-	int lengthMark = strlen(mark);
-	char c;
-	int isMatchMark; 
-	int indexS = 0; 
+	wchar_t c; // biến tạm để lữu từng kí tự đọc ra từ fileIn
+	int indexS = 0; // chỉ số của chuỗi s
 
 	while (true)
 	{
 		c = fgetc(fileIn);
-		for (int i = 0; i < lengthMark; i++)
-		{
-			isMatchMark = 0;
-			if (c == *(mark + i))
-			{
-				isMatchMark = 1;
-				break;
-			}
-		}
-		if (indexS == 0 && isMatchMark == 1)
-			continue;
-		if (isMatchMark || indexS == maxSizeS - 1) 
+		if (c == mark)
 		{
 			s = (char*)realloc(s, (indexS + 1)*sizeof(char));
-			*(s + indexS) = 0;
+			*(s + indexS) = 0; // kết thúc chuỗi s
+
+			c = fgetc(fileIn);
+			if (c == ',')
+			{
+				c = fgetc(fileIn);
+				if (c == '\"')
+					mark = '\"';
+				else
+				{
+					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+					mark = ',';
+				}
+			}
+			else if (c == '\"')
+				mark = '\"';
+			else
+			{
+				fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+				mark = ',';
+			}
 			break;
 		}
 		else
 		{
-			s = (char*)realloc(s, (indexS + 1)*sizeof(char));
-			*(s + indexS) = c;
+			s = (char*)realloc(s, (indexS + 1)*sizeof(char)); // nới rộng kích thước chuỗi ra 1 đơn vị
+			*(s + indexS) = c; // thêm kí tự c vào cuối chuỗi s
 			indexS++;
 		}
+		if (indexS > maxSizeS) // chỉ số indexS vượt quá maxSizeS
+		{
+			s = (char*)realloc(s, (indexS + 1)*sizeof(char));
+			*(s + indexS) = 0; // kết thúc chuỗi s
+			printf("Error larger than max size\n");
+			break;
+		}
 	}
+}
+// hàm tương tự FGETWS nhưng kiểu dữ liệu là int
+void FSCANF_NUMBER(int &number, FILE *fileIn, char &mark)
+{
+	fscanf_s(fileIn, "%d", &number);
+	fgetc(fileIn);
+	if (fgetc(fileIn) != '\"')
+	{
+		fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
+		mark = ',';
+	}
+	else
+		mark = '\"';
 }
 // hàm đọc fileIn(HTML) và ghi fileOut cho đến lúc phát hiện chuỗi ws thì (ghi luôn chuỗi ws) và dừng
 bool readFileIn_WriteFileOut_ToWS(FILE *fileOut, FILE *fileIn, wchar_t* ws)
@@ -121,9 +168,10 @@ bool readFileIn_WriteFileOut_ToWS(FILE *fileOut, FILE *fileIn, wchar_t* ws)
 		if (isMatchWS) // nếu trùng
 			return true;
 	}
+	printf("Error not found :(\n");
 	return false; // nếu không tìm được chuỗi ws trong fileIn
 }
-// đọc fileIn(HTML) đến chuỗi ws (không ghi chuỗi ws) và dừng 
+// hàm chỉ đọc fileIn(HTML) đến chuỗi ws (không ghi chuỗi ws) và dừng 
 bool readFileIn_ToWS(FILE *fileIn, wchar_t *ws) 
 {
 	int lengthWS = wcslen(ws);
@@ -160,10 +208,11 @@ bool readFileIn_ToWS(FILE *fileIn, wchar_t *ws)
 			return true;
 		}
 	}
+	printf("Error not found :(\n");
 	return false; // nếu không tìm được chuỗi ws trong fileIn
 }
 // kiểm tra trường dữ liệu trong struct Sinh Viên có được chọn hay không
-bool isInMenu(int *Menu, int nMenu, int choose)
+bool isInMenu(int *Menu, const int &nMenu, const int &choose)
 {
 	for (int i = 0; i < nMenu; i++)
 	{
@@ -186,6 +235,7 @@ void destroyList(LIST &list)
 		free(list[i].description);
 		free(list[i].hobby[0]);
 		free(list[i].hobby[1]);
+		free(list[i].hobby[2]);
 	}
 	delete[] list.student;
 }
@@ -196,107 +246,54 @@ void readFileCSV(FILE *fileIn, LIST &list)
 {
 	while (fgetwc(fileIn) != '\n'); // đọc bỏ hàng đầu của file CSV
 
+	char mark;
 	for (int i = 0; i < list.nStudent; i++)
 	{
-		// đọc ID sinh viên 
-		FGETS(list[i].ID, 11, fileIn, ",");
-		// đọc Họ và Tên sinh viên
-		FGETWS(list[i].fullName, 31, fileIn, L",");
-		// đọc Khoa đang học của sinh viên
-		FGETWS(list[i].faculty, 31, fileIn, L",");
-		// đọc Niên Khóa vào trường
-		fscanf(fileIn, "%d", &list[i].yearSchool);
-		// đọc Ngày Sinh của sinh viên
-		FGETS(list[i].birthDay, 11, fileIn, ",");
-		// đọc email sinh viên
-		FGETS(list[i].Email, 31, fileIn, ",");
-		// đọc Link hình ảnh cá nhân của sinh viên
-		FGETS(list[i].linkImage, 31, fileIn, ",");
-		//==============================BA TRƯỜNG HỢP ĐẶC BIỆT CÓ THỂ NGĂN CÁCH NHAU BẰNG DẤU , HOẶC DẤU " ================================
-		/*    1.	" " "
-			  2.	" " ,
-			  3.	" , "
-			  4.	" , ,
-			  5.	, " "
-			  6.	, " ,
-			  7.	, , "
-			  8.	, , ,
-			  */
-		if (fgetwc(fileIn) == '\"') // sau khi đọc xong linkImage đọc thử 1 kí tự tiếp theo của fileIn và kiểm tra 
-		{
-			FGETWS(list[i].description, 1000, fileIn, L"\""); // đọc Mô Tả bản thân của sinh viên
-			fgetwc(fileIn); // đọc bỏ dấu ,
-			if (fgetwc(fileIn) == '\"')
-			{
-				FGETWS(list[i].hobby[0], 1000, fileIn, L"\""); // đọc Sở Thích 1 cá nhân của sinh viên
-				fgetwc(fileIn); // đọc bỏ dấu ,
-				if (fgetwc(fileIn) == '\"')
-				{
-					FGETWS(list[i].hobby[1], 1000, fileIn, L"\""); // đọc Sở Thích 2 cá nhân của sinh viên
-					fgetc(fileIn); // đọc bỏ kí tự \n (là kí tự ngăn cách 2 sinh viên trên 2 dòng) ===> theo định dạng của file CSV
-				}// TH1------------------------------------------------------------------------------------------------------------------------
-				else
-				{
-					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET); // lui con trỏ chỉ vị xuống 1 đơn vị (vì đã đọc lố 1 kí tự đầu của nội dung Sở Thích 2)
-					FGETWS(list[i].hobby[1], 1000, fileIn, L"\n");
-				}// TH2------------------------------------------------------------------------------------------------------------------------
-			}
-			else
-			{
-				fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
-				FGETWS(list[i].hobby[0], 1000, fileIn, L",");
-				if (fgetwc(fileIn) == '\"')
-				{
-					FGETWS(list[i].hobby[1], 1000, fileIn, L"\"");
-					fgetc(fileIn);
-				}// TH3------------------------------------------------------------------------------------------------------------------------
-				else
-				{
-					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
-					FGETWS(list[i].hobby[1], 1000, fileIn, L"\n");
-				}// TH4------------------------------------------------------------------------------------------------------------------------
-			}
-		}
+		/*		Xác định dấu ngắt câu đầu tiên cần đọc đến
+		Có 2 trường hợp:
+		TH1:	nội dung,			--> mark = ','
+		TH2:   "nội dung",			--> mark = '\"'		*/
+		if (fgetc(fileIn) == '\"')
+			mark = '\"';	// TH2:
 		else
 		{
 			fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
-			FGETWS(list[i].description, 1000, fileIn, L",");
+			mark = ',';		// TH1
+		}
+		FGETS(list[i].ID, 11, fileIn, mark);
+		
+		FGETWS(list[i].fullName, 31, fileIn, mark);
+	
+		FGETWS(list[i].faculty, 31, fileIn, mark);
+	
+		FSCANF_NUMBER(list[i].yearSchool, fileIn, mark);
+	
+		FGETS(list[i].birthDay, 11, fileIn, mark);
+	
+		FGETS(list[i].Email, 31, fileIn, mark);
+	
+		FGETS(list[i].linkImage, 31, fileIn, mark);
 
-			if (fgetwc(fileIn) == '\"')
-			{
-				FGETWS(list[i].hobby[0], 1000, fileIn, L"\"");
-				fgetwc(fileIn);
-				if (fgetwc(fileIn) == '\"')
-				{
-					FGETWS(list[i].hobby[1], 1000, fileIn, L"\"");
-					fgetc(fileIn);
-				}// TH5------------------------------------------------------------------------------------------------------------------------
-				else
-				{
-					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
-					FGETWS(list[i].hobby[1], 1000, fileIn, L"\n");
-				}// TH6------------------------------------------------------------------------------------------------------------------------
-			}
-			else
-			{
-				fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
-				FGETWS(list[i].hobby[0], 1000, fileIn, L",");
-				if (fgetwc(fileIn) == '\"')
-				{
-					FGETWS(list[i].hobby[1], 1000, fileIn, L"\"");
-					fgetc(fileIn);
-				}// TH7------------------------------------------------------------------------------------------------------------------------
-				else
-				{
-					fseek(fileIn, ftell(fileIn) - 1, SEEK_SET);
-					FGETWS(list[i].hobby[1], 1000, fileIn, L"\n");
-				}// TH8------------------------------------------------------------------------------------------------------------------------
-			}
+		FGETWS(list[i].description, 1000, fileIn, mark);
+
+		FGETWS(list[i].hobby[0], 1000, fileIn, mark);
+
+		FGETWS(list[i].hobby[1], 1000, fileIn, mark);
+		//==============================TRƯỜNG HỢP ĐẶC BIỆT CHO TRƯỜNG DỮ LIỆU CUỐI CÙNG CỦA 1 DÒNG===========================================
+		if (mark == ',')
+		{
+			mark = '\n';
+			FGETWS(list[i].hobby[2], 1000, fileIn, mark);
+		}
+		else
+		{
+			FGETWS(list[i].hobby[2], 1000, fileIn, mark);
+			fgetwc(fileIn);
 		}
 	}
 }
 // hàm vừa đọc fileIn(HTML) vừa ghi fileOut
-void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int *Menu, int nMenu)
+void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, const STUDENT &student, int *Menu, const int &nMenu)
 {
 	wchar_t wc; // biến tạm để lữu từng kí tự đọc ra từ fileIn
 
@@ -316,7 +313,8 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int 
 		fputws(student.fullName, fileOut); // ghi Họ&Tên sinh viên mới vào fileOut 
 	else
 		fputws(L"", fileOut); // ghi trống vào fileOut
-	fputwc('-', fileOut); // ghi kí tự '-' vào fileOut
+	if (isInMenu(Menu, nMenu, 1) && isInMenu(Menu, nMenu, 2))
+		fputwc('-', fileOut); // ghi kí tự '-' vào fileOut
 	if (isInMenu(Menu, nMenu, 1))
 		fputs(student.ID, fileOut); // ghi ID sinh viên mới vào fileOut
 	else
@@ -386,6 +384,7 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int 
 	{
 		addLine(topicHobby1, student.hobby[0], fileOut);                 // ghi Sở Thích 1 của sinh viên mới vào fileOut
 		addLine(topicHobby2, student.hobby[1], fileOut);                 // ghi Sở Thích 2 của sinh viên mới vào fileOut
+		addLine(topicHobby3, student.hobby[2], fileOut);                 // ghi Sở Thích 3 của sinh viên mới vào fileOut
 	}
 	else
 		fputws(L"", fileOut); // ghi trống vào fileOut

@@ -8,7 +8,6 @@ int main()
 	int *Menu = NULL;
 	int nMenu = 0;
 	int choose;
-
 	printf("==================MENU====================\n");
 	printf("1. ID\n");
 	printf("2. Full Name\n");
@@ -19,32 +18,35 @@ int main()
 	printf("7. Email\n");
 	printf("8. Description\n");
 	printf("9. Hobby\n\n");
-	printf("Chon cac tuy chon ban muon HIEN THI tren TRANG CA NHAN (Nhan Enter va  Ctr + Z de ket thuc tuy chon): ");
-	while (scanf("%d%*c", &choose) > 0)
+	wprintf(L"Choose items you want to display on your PROFILE (Press CTR + Z to exit): ");
+	while (scanf_s("%d%*c", &choose) > 0)
 	{
 		Menu = (int*)realloc(Menu, (nMenu + 1)*sizeof(int));
 		*(Menu + nMenu) = choose;
 		nMenu++;
 	}//-----------------------------------------------------------------------------------------------------------------------------
+
 	LIST list;
 	list.nStudent = 10;
 	list.student = new STUDENT[list.nStudent];
 
-	FILE *fileIn_CSV = _wfopen(L"TableInfo.csv", L"r");
+	FILE *fileIn_CSV;
+	_wfopen_s(&fileIn_CSV, L"TableInfo.csv", L"r");
 	if (!fileIn_CSV)
 		printf("Error\n");
 
 	readFileCSV(fileIn_CSV, list);
 
-	fclose(fileIn_CSV); //-----------------------------------------------------------------------------------------------------------
-	FILE *fileIn = _wfopen(L"example.htm", L"r");
+	fclose(fileIn_CSV); //----------------------------------------------------------------------------------------------------------
+	FILE *fileIn;
+	_wfopen_s(&fileIn, L"example.htm", L"r");
 	if (!fileIn)
 		printf("Error\n");
 
 	FILE *fileOut;
 	for (int i = 0; i < list.nStudent; i++)
 	{
-		fileOut = _wfopen(nameFileOut[i], L"w");
+		_wfopen_s(&fileOut, nameFileOut[i], L"w");
 
 		writeOneStudentInFileCSV(fileIn, fileOut, list[i], Menu, nMenu);
 

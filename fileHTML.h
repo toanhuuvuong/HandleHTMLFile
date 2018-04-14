@@ -1,18 +1,19 @@
 ﻿#include<stdio.h>
 #include<conio.h>
 #include<string>
+
 // DANH SÁCH CÁC CHUỖI CẦN THAY THẾ
 #define title L"<title>HCMUS - "
 #define classFullName L"class=\"Personal_FullName\">"
 #define classFaculty L"class=\"Personal_Department\">"
-#define classEmail L"class=\"Personal_Phone\">\n\t\t\t\t\t\t\t"
-#define classLinkImage L"class=\"Personal_HinhcanhanKhung\">\n\t\t\t\t\t\t<img src=\""
+#define classEmail L"class=\"Personal_Phone\">"
+#define classLinkImage L"class=\"Personal_HinhcanhanKhung\">\n                    <img src=\""
 #define classTextInList L"class=\"TextInList\">"
-#define classInfo L"class=\"InfoGroup\">ThÃ´ng tin cÃ¡ nhÃ¢n</div>\n                        <div>\n                            <ul class=\"TextInList\">\n                                "
-#define classHobby L"class=\"InfoGroup\">Sá»\x9F thÃ­ch</div>\n\n                            <ul class=\"TextInList\">\n                                "
-#define classDescription L"class=\"InfoGroup\">MÃ´ táº£</div>\n\t\t\t\t\t\t<div class=\"Description\">"
-#define classFooter L"class=\"Layout_Footer\">\n\t\t\t\t<div class=\"divCopyright\">\n\t\t\t\t\t<br />\n\t\t\t\t\t<img src=\"Images/LogoFooter_gray.jpg\" width=\"34\" height=\"41\" /><br />\n\t\t\t\t\t<br />\n\t\t\t\t\t@"
-#define KTLT L"Ká»¹ thuáº­t láº­p trÃ¬nh</br>\n\t\t\t\t"
+#define classInfo L"class=\"InfoGroup\">\x54\x68\xC3\xB4\x6E\x67 \x74\x69\x6E \x63\xC3\xA1 \x6E\x68\xC3\xA2\x6E</div>\n                    <div>\n                        <ul class=\"TextInList\">\n"
+#define classHobby L"class=\"InfoGroup\">\x53\xE1\xBB\x9F \x74\x68\xC3\xAD\x63\x68</div>\n\n                        <ul class=\"TextInList\">\n"
+#define classDescription L"class=\"InfoGroup\">\x4D\xC3\xB4 \x74\xE1\xBA\xA3</div>\n                    <div class=\"Description\">\n"
+#define classFooter L"class=\"Layout_Footer\">\n            <div class=\"divCopyright\">\n                <br />\n                <img src=\"Images/LogoFooter_gray.jpg\" width=\"34\" height=\"41\" /><br />\n                <br />\n                @"
+#define KTLT L"\x4B\xE1\xBB\xB9 \x74\x68\x75\xE1\xBA\xAD\x74 \x6C\xE1\xBA\xAD\x70 \x74\x72\xC3\xAC\x6E\x68</br>\n"
 // DANH SÁCH CÁC CHỦ ĐỀ CỦA DÒNG
 #define topicFullName L"Há» vÃ  tÃªn: "
 #define topicID L"MSSV: "
@@ -21,6 +22,7 @@
 #define topicFaculty L"Sinh viÃªn khoa: "
 #define topicHobby1 L"\xC3\x82m nháº¡c: "
 #define topicHobby2 L"áº¨m thá»±c: "
+#define topicHobby3 L"Phim áº£nh: "
 
 struct student
 {
@@ -32,7 +34,7 @@ struct student
 	char *Email;
 	char *linkImage;
 	wchar_t *description;
-	wchar_t *hobby[2];
+	wchar_t *hobby[3];
 
 	student();
 }; typedef struct student STUDENT;
@@ -49,11 +51,12 @@ struct list
 	}
 }; typedef struct list LIST;
 
-void FGETWS(wchar_t *&ws, int maxSizeWS, FILE *fileIn, wchar_t *mark);
-void FGETS(char *&s, int maxSizeS, FILE *fileIn, char *mark);
+void FGETWS(wchar_t *&ws, const int &maxSizeWS, FILE *fileIn, char &mark);
+void FGETS(char *&s, const int &maxSizeS, FILE *fileIn, char &mark);
+void FSCANF_NUMBER(int &number, FILE *fileIn, char &mark);
+
 bool readFileIn_WriteFileOut_ToWS(FILE *fileOut, FILE *fileIn, wchar_t* ws);
 bool readFileIn_ToWS(FILE *fileIn, wchar_t *ws);
-bool isInMenu(int *Menu, int nMenu, int choose);
 void destroyList(LIST &list);
 // hàm phát sinh một dòng có dạng " <li>topic: content</li> " trong html và ghi vào fileOuT ==> VD: <li>Ẩm thực: Bánh mì, Bún nước lèo,..<\li>
 template<typename T>
@@ -63,7 +66,7 @@ void addLine(wchar_t *topic, T content, FILE *fileOut)
 	fputws(topic, fileOut);
 
 	if (typeid(T).name() == typeid(int).name())
-		fscanf(fileOut, "%d", (int)content);
+		fscanf_s(fileOut, "%d", (int)content);
 	else if (typeid(T).name() == typeid(char*).name())
 		fputs((const char *)content, fileOut);
 	else if (typeid(T).name() == typeid(wchar_t*).name())
@@ -73,4 +76,4 @@ void addLine(wchar_t *topic, T content, FILE *fileOut)
 }
 
 void readFileCSV(FILE *fileIn, LIST &list);
-void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, STUDENT student, int *Menu, int nMenu);
+void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, const STUDENT &student, int *Menu, const int &nMenu);
