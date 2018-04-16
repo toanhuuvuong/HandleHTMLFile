@@ -2,7 +2,7 @@
 #include<conio.h>
 #include<string>
 
-// DANH SÁCH CÁC CHUỖI CẦN THAY THẾ
+// DANH SÁCH CÁC CHUỖI CẦN TÌM
 #define title L"<title>HCMUS - "
 #define classFullName L"class=\"Personal_FullName\">"
 #define classFaculty L"class=\"Personal_Department\">"
@@ -20,9 +20,11 @@
 #define topicEmail L"Email: "
 #define topicBirthDay L"NgÃ y sinh: "
 #define topicFaculty L"Sinh viÃªn khoa: "
+#define topicYearSchool L"KhÃ³a: "
 #define topicHobby1 L"\xC3\x82m nháº¡c: "
 #define topicHobby2 L"áº¨m thá»±c: "
 #define topicHobby3 L"Phim áº£nh: "
+#define topicHobby4 L"Th\xE1\xBB\x83 thao: " 
 
 struct student
 {
@@ -34,7 +36,7 @@ struct student
 	char *Email;
 	char *linkImage;
 	wchar_t *description;
-	wchar_t *hobby[3];
+	wchar_t *hobby[4];
 
 	student();
 }; typedef struct student STUDENT;
@@ -46,34 +48,33 @@ struct list
 
 	STUDENT& operator[](int i)
 	{
-		if (i >= 0 && i < nStudent && student != NULL)
-			return student[i];
+		if (student != NULL && i >= 0 && i < nStudent)
+			return *(student + i);
 	}
 }; typedef struct list LIST;
 
 void FGETWS(wchar_t *&ws, const int &maxSizeWS, FILE *fileIn, char &mark);
 void FGETS(char *&s, const int &maxSizeS, FILE *fileIn, char &mark);
 void FSCANF_NUMBER(int &number, FILE *fileIn, char &mark);
-
 bool readFileIn_WriteFileOut_ToWS(FILE *fileOut, FILE *fileIn, wchar_t* ws);
 bool readFileIn_ToWS(FILE *fileIn, wchar_t *ws);
 void destroyList(LIST &list);
-// hàm phát sinh một dòng có dạng " <li>topic: content</li> " trong html và ghi vào fileOuT ==> VD: <li>Ẩm thực: Bánh mì, Bún nước lèo,..<\li>
-template<typename T>
-void addLine(wchar_t *topic, T content, FILE *fileOut)
+template<typename T> // hàm phát sinh một dòng có dạng " <li>topic: content</li> " trong html và ghi vào fileOuT ==> VD: <li>Ẩm thực: Bánh mì, Bún nước lèo,..<\li>
+void addLineInList(wchar_t *topic, T content, FILE *fileOut)
 {
 	fputs("<li>", fileOut);
 	fputws(topic, fileOut);
 
 	if (typeid(T).name() == typeid(int).name())
-		fscanf_s(fileOut, "%d", (int)content);
+		fprintf_s(fileOut, "%d", (int)content);
 	else if (typeid(T).name() == typeid(char*).name())
 		fputs((const char *)content, fileOut);
 	else if (typeid(T).name() == typeid(wchar_t*).name())
 		fputws((const wchar_t *)content, fileOut);
 
-	fputs("</li>\n", fileOut);
+	fputs("</li>\n\t\t\t\t\t", fileOut);
 }
 
+void optionMenu(int *&Menu, int &nMenu);
 void readFileCSV(FILE *fileIn, LIST &list);
 void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, const STUDENT &student, int *Menu, const int &nMenu);

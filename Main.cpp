@@ -5,26 +5,8 @@ wchar_t *nameFileOut[10] = { L"1.htm", L"2.htm", L"3.htm", L"4.htm", L"5.htm", L
 
 int main()
 {
-	int *Menu = NULL;
-	int nMenu = 0;
-	int choose;
-	printf("==================MENU====================\n");
-	printf("1. ID\n");
-	printf("2. Full Name\n");
-	printf("3. Faculty\n");
-	printf("4. Year School\n");
-	printf("5. Birthday\n");
-	printf("6. Link Image\n");
-	printf("7. Email\n");
-	printf("8. Description\n");
-	printf("9. Hobby\n\n");
-	wprintf(L"Choose items you want to display on your PROFILE (Press CTR + Z to exit): ");
-	while (scanf_s("%d%*c", &choose) > 0)
-	{
-		Menu = (int*)realloc(Menu, (nMenu + 1)*sizeof(int));
-		*(Menu + nMenu) = choose;
-		nMenu++;
-	}//-----------------------------------------------------------------------------------------------------------------------------
+	int *Menu;
+	int nMenu;
 
 	LIST list;
 	list.nStudent = 10;
@@ -32,6 +14,7 @@ int main()
 
 	FILE *fileIn_CSV;
 	_wfopen_s(&fileIn_CSV, L"TableInfo.csv", L"r");
+
 	if (!fileIn_CSV)
 		printf("Error\n");
 
@@ -40,23 +23,28 @@ int main()
 	fclose(fileIn_CSV); //----------------------------------------------------------------------------------------------------------
 	FILE *fileIn;
 	_wfopen_s(&fileIn, L"example.htm", L"r");
+
 	if (!fileIn)
 		printf("Error\n");
 
 	FILE *fileOut;
 	for (int i = 0; i < list.nStudent; i++)
 	{
+		printf("================STUDENT %d================\n", i + 1);
 		_wfopen_s(&fileOut, nameFileOut[i], L"w");
+
+		optionMenu(Menu, nMenu);
 
 		writeOneStudentInFileCSV(fileIn, fileOut, list[i], Menu, nMenu);
 
 		fclose(fileOut);
 
+		free(Menu);
+
 		rewind(fileIn); // đưa con trỏ chỉ vị trở về đầu fileIn(HTML) để đọc tiếp sinh viên mới
 	}
 	fclose(fileIn); //----------------------------------------------------------------------------------------------------------------
 	destroyList(list);
-	free(Menu);
 
 	_getch();
 	return 0;
