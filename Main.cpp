@@ -5,18 +5,23 @@ wchar_t *nameFileOut[10] = { L"1.htm", L"2.htm", L"3.htm", L"4.htm", L"5.htm", L
 
 int main()
 {
+	_setmode(_fileno(stdout), _O_U8TEXT); // in ra tiếng Việt
+
 	int *Menu;
 	int nMenu;
 
 	LIST list;
-	list.nStudent = 10;
-	list.student = new STUDENT[list.nStudent];
 
 	FILE *fileIn_CSV;
 	_wfopen_s(&fileIn_CSV, L"TableInfo.csv", L"r");
 
 	if (!fileIn_CSV)
-		printf("Error\n");
+		wprintf(L"Error open file\n");
+
+	list.nStudent = nStudentOfList(fileIn_CSV);
+	list.student = new STUDENT[list.nStudent];
+
+	rewind(fileIn_CSV);
 
 	readFileCSV(fileIn_CSV, list);
 
@@ -25,17 +30,17 @@ int main()
 	_wfopen_s(&fileIn, L"example.htm", L"r");
 
 	if (!fileIn)
-		printf("Error\n");
+		wprintf(L"Error open file\n");
 
 	FILE *fileOut;
 	for (int i = 0; i < list.nStudent; i++)
 	{
-		printf("================STUDENT %d================\n", i + 1);
+		wprintf(L"================STUDENT %d================\n", i + 1);
 		_wfopen_s(&fileOut, nameFileOut[i], L"w");
 
 		optionMenu(Menu, nMenu);
 
-		writeOneStudentInFileCSV(fileIn, fileOut, list[i], Menu, nMenu);
+		writeOneStudentInFileCSV(fileIn, fileOut, list[i], list.nHobbyOfOneStudent[i], Menu, nMenu);
 
 		fclose(fileOut);
 

@@ -1,5 +1,7 @@
 ﻿#include<stdio.h>
 #include<conio.h>
+#include <fcntl.h>
+#include <io.h>
 #include<string>
 
 // DANH SÁCH CÁC CHUỖI CẦN TÌM
@@ -21,10 +23,6 @@
 #define topicBirthDay L"NgÃ y sinh: "
 #define topicFaculty L"Sinh viÃªn khoa: "
 #define topicYearSchool L"KhÃ³a: "
-#define topicHobby1 L"\xC3\x82m nháº¡c: "
-#define topicHobby2 L"áº¨m thá»±c: "
-#define topicHobby3 L"Phim áº£nh: "
-#define topicHobby4 L"Th\xE1\xBB\x83 thao: " 
 
 struct student
 {
@@ -36,7 +34,7 @@ struct student
 	char *Email;
 	char *linkImage;
 	wchar_t *description;
-	wchar_t *hobby[4];
+	wchar_t *hobby[100];
 
 	student();
 }; typedef struct student STUDENT;
@@ -45,12 +43,15 @@ struct list
 {
 	STUDENT *student;
 	int nStudent;
+	int *nHobbyOfOneStudent;
 
 	STUDENT& operator[](int i)
 	{
 		if (student != NULL && i >= 0 && i < nStudent)
 			return *(student + i);
 	}
+
+	list();
 }; typedef struct list LIST;
 
 void FGETWS(wchar_t *&ws, const int &maxSizeWS, FILE *fileIn, char &mark);
@@ -75,6 +76,8 @@ void addLineInList(wchar_t *topic, T content, FILE *fileOut)
 	fputs("</li>\n\t\t\t\t\t", fileOut);
 }
 
+bool isInMenu(int *Menu, const int &nMenu, const int &choose);
 void optionMenu(int *&Menu, int &nMenu);
+int nStudentOfList(FILE *fileIn);
 void readFileCSV(FILE *fileIn, LIST &list);
-void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, const STUDENT &student, int *Menu, const int &nMenu);
+void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, const STUDENT &student, const int &nHobby, int *Menu, const int &nMenu);
