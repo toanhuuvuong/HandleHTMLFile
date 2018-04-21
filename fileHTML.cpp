@@ -255,25 +255,6 @@ bool readFileIn_ToWS(FILE *fileIn, wchar_t *ws)
 	wprintf(L"Lỗi không tìm thấy :(\n");
 	return false; // nếu không tìm được chuỗi ws trong fileIn
 }
-// hàm hủy
-void destroyList(LIST &list)
-{
-	for (int i = 0; i < list.nStudent; i++)
-	{
-		free(list[i].ID);
-		free(list[i].fullName);
-		free(list[i].faculty);
-		free(list[i].birthDay);
-		free(list[i].Email);
-		free(list[i].linkImage);
-		free(list[i].description);
-		for (int j = 0; j < list.nHobbyOfOneStudent[i]; j++)
-			free(list[i].hobby[j]);
-	}
-	delete[] list.student;
-}
-//==============================================================================================================================================
-// HÀM CHÍNH
 // kiểm tra trường dữ liệu trong struct Sinh Viên có được chọn hay không
 bool isInMenu(int *Menu, const int &nMenu, const int &choose)
 {
@@ -288,7 +269,7 @@ bool isInMenu(int *Menu, const int &nMenu, const int &choose)
 void optionMenu(int *&Menu, int &nMenu)
 {
 	Menu = NULL;
-    nMenu = 0;
+	nMenu = 0;
 	int choose;
 	wprintf(L"\t\t--MENU--\n");
 	wprintf(L"1. Mã số sinh viên\n");
@@ -320,6 +301,44 @@ int nStudentOfList(FILE *fileIn)
 	}
 	return count;
 }
+// hàm phát sinh tên fileOut của các sinh viên
+void nameFileOutOfListStudent(wchar_t *nameFileOut[100], LIST list)
+{
+	int lengthID;
+	for (int i = 0; i < list.nStudent; i++)
+	{
+		nameFileOut[i] = NULL;
+		lengthID = strlen(list[i].ID);
+		nameFileOut[i] = (wchar_t*)realloc(nameFileOut[i], (lengthID + 1)*sizeof(wchar_t));
+		for (int j = 0; j < lengthID; j++)
+			nameFileOut[i][j] = (wchar_t)(list[i].ID)[j];
+		nameFileOut[i][lengthID] = '\0';
+
+		lengthID += strlen(".htm");
+		nameFileOut[i] = (wchar_t*)realloc(nameFileOut[i], (lengthID + 1)*sizeof(wchar_t));
+		nameFileOut[i] = wcscat(nameFileOut[i], L".htm");
+	}
+}
+// hàm hủy
+void destroyList(LIST &list)
+{
+	free(list.nHobbyOfOneStudent);
+	for (int i = 0; i < list.nStudent; i++)
+	{
+		free(list[i].ID);
+		free(list[i].fullName);
+		free(list[i].faculty);
+		free(list[i].birthDay);
+		free(list[i].Email);
+		free(list[i].linkImage);
+		free(list[i].description);
+		for (int j = 0; j < list.nHobbyOfOneStudent[i]; j++)
+			free(list[i].hobby[j]);
+	}
+	delete[] list.student;
+}
+//==============================================================================================================================================
+// HÀM CHÍNH
 // hàm đọc danh sách sinh viên trong fileIn(CSV)
 void readFileCSV(FILE *fileIn, LIST &list)
 {
@@ -391,7 +410,7 @@ void writeOneStudentInFileCSV(FILE *fileIn, FILE *fileOut, const STUDENT &studen
 		fputws(L"", fileOut); // ghi trống vào fileOut
 
 	if (isInMenu(Menu, nMenu, 1) && isInMenu(Menu, nMenu, 2) || isInMenu(Menu, nMenu, 10)) // khi fullName và ID đều được chọn trong Menu dấu này mới xuất hiện
-		fputwc('-', fileOut); // ghi kí tự '-' vào fileOut
+		fputws(L" - ", fileOut); // ghi kí tự ' - ' vào fileOut
 
 	if (isInMenu(Menu, nMenu, 1) || isInMenu(Menu, nMenu, 10))
 		fputs(student.ID, fileOut); // ghi ID sinh viên mới vào fileOut

@@ -1,19 +1,18 @@
 ﻿#include"fileHTML.h"
 
-// Danh sách tên của các profile xuất ra
-wchar_t *nameFileOut[10] = { L"1.htm", L"2.htm", L"3.htm", L"4.htm", L"5.htm", L"6.htm", L"7.htm", L"8.htm", L"9.htm", L"10.htm" };
-
 int main()
 {
 	_setmode(_fileno(stdout), _O_U8TEXT); // in ra tiếng Việt
 
+	LIST list;
+
+	wchar_t *nameFileOut[100]; // Danh sách tên của các profile xuất ra
+
 	int *Menu;
 	int nMenu;
 
-	LIST list;
-
 	FILE *fileIn_CSV;
-	_wfopen_s(&fileIn_CSV, L"TableInfo.csv", L"r");
+	_wfopen_s(&fileIn_CSV, L"TableInfo.csv", L"r");//------------------------------------------------------------------------------
 
 	if (!fileIn_CSV)
 		wprintf(L"Error open file\n");
@@ -25,9 +24,11 @@ int main()
 
 	readFileCSV(fileIn_CSV, list);
 
+	nameFileOutOfListStudent(nameFileOut, list);
+
 	fclose(fileIn_CSV); //----------------------------------------------------------------------------------------------------------
 	FILE *fileIn;
-	_wfopen_s(&fileIn, L"example.htm", L"r");
+	_wfopen_s(&fileIn, L"example.htm", L"r");//------------------------------------------------------------------------------------
 
 	if (!fileIn)
 		wprintf(L"Error open file\n");
@@ -49,7 +50,9 @@ int main()
 		rewind(fileIn); // đưa con trỏ chỉ vị trở về đầu fileIn(HTML) để đọc tiếp sinh viên mới
 	}
 	fclose(fileIn); //----------------------------------------------------------------------------------------------------------------
-	destroyList(list);
+	destroyList(list); // hủy danh sách sinh viên
+	for (int i = 0; i < list.nStudent; i++) // hủy danh sách tên fileOut của các sinh viên
+		free(nameFileOut[i]);
 
 	_getch();
 	return 0;
